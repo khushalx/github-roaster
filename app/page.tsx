@@ -6,6 +6,7 @@ import { FormEvent, useEffect, useRef, useState } from "react";
 import BattleResult, { BattleResultData } from "./components/BattleResult";
 import BattleShareCard from "./components/BattleShareCard";
 import RoastShareCard from "./components/RoastShareCard";
+import RoastWarning from "./components/RoastWarning";
 
 const soloLoadingMessages = [
   "Auditing commit history…",
@@ -55,6 +56,13 @@ type RoastResult = {
     verdict: string;
     score: number;
   };
+};
+
+type PendingRoast = {
+  mode: "solo" | "battle";
+  username: string;
+  usernameA: string;
+  usernameB: string;
 };
 
 type ApiError = {
@@ -375,6 +383,7 @@ export default function Home() {
   const [usernameA, setUsernameA] = useState("");
   const [usernameB, setUsernameB] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [pendingRoast, setPendingRoast] = useState<PendingRoast | null>(null);
   const [loadingIndex, setLoadingIndex] = useState(0);
   const [error, setError] = useState("");
   const [developerError, setDeveloperError] = useState("");
@@ -414,8 +423,9 @@ export default function Home() {
     setLoadingIndex(0);
   }
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (isLoading || pendingRoast) return;
     const trimmed = username.trim().replace(/^@/, "");
     const trimmedA = usernameA.trim().replace(/^@/, "");
     const trimmedB = usernameB.trim().replace(/^@/, "");
@@ -439,6 +449,13 @@ export default function Home() {
       return;
     }
 
+    setPendingRoast({ mode, username: trimmed, usernameA: trimmedA, usernameB: trimmedB });
+  }
+
+  async function generateRoast(pending: PendingRoast) {
+    if (isLoading) return;
+    setPendingRoast(null);
+    const { mode, username: trimmed, usernameA: trimmedA, usernameB: trimmedB } = pending;
     if (mode === "solo") setUsername(trimmed);
     else {
       setUsernameA(trimmedA);
@@ -673,6 +690,13 @@ export default function Home() {
 
   return (
     <main className="site-shell">
+      {pendingRoast && (
+        <RoastWarning
+          battleMode={pendingRoast.mode === "battle"}
+          onCancel={() => setPendingRoast(null)}
+          onConfirm={() => void generateRoast(pendingRoast)}
+        />
+      )}
       <div className="ambient-glow" aria-hidden="true" />
       <div className="curtain curtain-left" aria-hidden="true" />
       <div className="curtain curtain-right" aria-hidden="true" />
