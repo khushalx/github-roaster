@@ -1,0 +1,33 @@
+import Link from "next/link";
+import { createPageMetadata } from "@/lib/site";
+import SiteFooter from "../components/SiteFooter";
+import StructuredData from "../components/StructuredData";
+
+const title = "How GitHub Roaster Works — Public Data, AI & Roast Scores";
+const description = "Learn how GitHub Roaster uses public repository data, README checks, and AI to generate profile roasts and battles. Understand data use and score limitations.";
+export const metadata = createPageMetadata({ title, description, path: "/how-it-works" });
+
+export default function HowItWorksPage() {
+  return (
+    <>
+      <StructuredData path="/how-it-works" title="How GitHub Roaster Works" description={description} />
+      <main id="main-content" className="site-shell guide-page">
+        <header className="site-header"><Link className="brand" href="/">GitHub <strong>Roaster</strong></Link><nav className="site-nav" aria-label="Main navigation"><Link href="/">Solo roast</Link><Link href="/battle">Roast battle</Link></nav></header>
+        <article className="guide-content">
+          <nav className="breadcrumbs" aria-label="Breadcrumb"><Link href="/">GitHub Roaster</Link><span aria-hidden="true">/</span><span aria-current="page">How it works</span></nav>
+          <p className="section-kicker">Behind the verdict</p>
+          <h1>How GitHub Roaster works</h1>
+          <p className="guide-lede">An AI GitHub roast is more entertaining when the punchline has evidence. Here is what the tool actually checks, how solo roasts and battles differ, and what the results can tell you.</p>
+          <section><h2>1. Start with a public GitHub username</h2><p>You can <Link href="/">roast a single GitHub profile</Link> or enter two different usernames for a <Link href="/battle">head-to-head roast battle</Link>. You do not sign in to GitHub or grant access to an account. A content warning asks you to confirm before the app generates deliberately harsh developer humor.</p><p>The server retrieves public profile information from the GitHub API, including the username, bio, public repository count, followers, and profile avatar. Private repositories and credentials are not part of the request.</p></section>
+          <section><h2>2. Gather a limited repository sample</h2><p>The app requests up to 30 public repositories, sorted by most recently updated. This is a sample, not a complete audit of every project on a large account. Counts shown for inspected repositories can therefore differ from the profile’s total public repository count.</p><ul><li><strong>Language habits:</strong> the primary language declared for each sampled repository, counted by repository rather than lines of code.</li><li><strong>Stars and forks:</strong> totals across the inspected repositories, giving context for jokes about project popularity.</li><li><strong>Stale projects:</strong> repositories with no push in more than 180 days. A mature, finished project can be quiet for perfectly good reasons.</li><li><strong>Repository presentation:</strong> names and descriptions that give the AI specific details to reference.</li><li><strong>README availability:</strong> existence checks for up to 10 selected repositories, ordered by stars and then update time. A missing README is counted when GitHub returns a not-found response; failed checks are not proof of missing documentation.</li></ul><p>The app summarizes this metadata. It does not perform a line-by-line review of source code, a dependency audit, or a security assessment.</p></section>
+          <section><h2>3. Turn the evidence into an AI roast</h2><p>The server sends a summary of the public evidence to Groq, the AI provider used to generate the jokes. The instructions focus the roast on repository choices, README gaps, project names, language habits, and other supplied details.</p><p>A solo roast includes an opening, roast lines, a harsher round, a score, and a verdict. The accompanying evidence board helps you see which public signals the jokes are based on. AI can still misread a project or invent an implication, so a confident punchline is not a verified judgment.</p></section>
+          <section><h2>4. Or compare two profiles in battle mode</h2><p>In a battle, the app gathers the same kinds of evidence for each username. Both profiles receive roast lines and a score, followed by direct comparisons, a winner, and a comic finishing move. The winner is the profile that survived the roast better, rather than a reliable ranking of developer skill.</p><p>Use the copy controls to share the text or download the generated battle card. A downloaded card is an image; the app does not create a permanent public result page for the roast.</p></section>
+          <section><h2>What the scores mean</h2><p><strong>Roastability</strong> measures comic roast severity on a 0–100 scale: a higher number means more roast damage. <strong>Portfolio energy</strong> is a separate playful metric based on repository signals. Neither is an objective code-quality grade, professional evaluation, or hiring recommendation.</p><p>Open-source maintenance, private work, project age, and personal circumstances all add context the tool cannot fully see. Treat the result as entertainment, and use a proper code review when you need technical feedback.</p></section>
+          <section><h2>Data use, caching, and service limits</h2><p>The tool uses public GitHub data and passes an evidence summary to the AI provider for generation. GitHub API responses are cached for about five minutes to reduce repeated requests. That means very recent profile changes may not appear immediately, and “public data only” does not mean no data is processed or temporarily cached.</p><p>GitHub and Groq both enforce API limits. A valid profile can still fail to load when a provider is busy or its quota is exhausted. If that happens, wait and try again. Do not share passwords, private code, or other sensitive information in the username fields.</p></section>
+          <section><h2>Make the roast a good joke</h2><p>Start with your own profile. If you bring a friend into a battle, choose someone who enjoys this kind of humor. Repository jokes are the point; using an AI verdict to harass someone or assess their employability misses the context.</p><p>GitHub Roaster is an independent entertainment project and is not affiliated with or endorsed by GitHub.</p><div className="content-actions"><Link href="/">Roast my GitHub profile →</Link><Link href="/battle">Challenge a friend →</Link></div></section>
+        </article>
+        <SiteFooter />
+      </main>
+    </>
+  );
+}
