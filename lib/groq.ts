@@ -1,3 +1,15 @@
+function modelOptions(maxCompletionTokens: number) {
+  const model = process.env.GROQ_MODEL?.trim() || "openai/gpt-oss-120b";
+  const isGptOss = model === "openai/gpt-oss-120b" || model === "openai/gpt-oss-20b";
+
+  return {
+    model,
+    // GPT-OSS shares its completion budget between reasoning and the final answer.
+    max_completion_tokens: maxCompletionTokens + (isGptOss ? 2048 : 0),
+    ...(isGptOss ? { reasoning_effort: "low", include_reasoning: false } : {}),
+  };
+}
+
 export class GroqRequestError extends Error {
   status: number;
   rawText?: string;
@@ -98,9 +110,8 @@ export async function requestGroqJson({
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "llama-3.3-70b-versatile",
+        ...modelOptions(maxCompletionTokens),
         temperature,
-        max_completion_tokens: maxCompletionTokens,
         response_format: { type: "json_object" },
         messages: [
           { role: "system", content: systemPrompt },
@@ -170,9 +181,8 @@ export async function requestGroqText({
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "llama-3.3-70b-versatile",
+        ...modelOptions(maxCompletionTokens),
         temperature,
-        max_completion_tokens: maxCompletionTokens,
         stream: false,
         messages: [
           { role: "system", content: systemPrompt },
