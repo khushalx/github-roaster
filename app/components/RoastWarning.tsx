@@ -19,14 +19,26 @@ export default function RoastWarning({
     if (!dialog) return;
     const previousFocus = document.activeElement;
     const previousOverflow = document.body.style.overflow;
+    const scrollY = window.scrollY;
+    const previousPosition = document.body.style.position;
+    const previousTop = document.body.style.top;
+    const previousWidth = document.body.style.width;
     dialog.showModal();
     cancelRef.current?.focus();
     document.body.style.overflow = "hidden";
+    // Lock background scroll on iOS as well as desktop browsers.
+    document.body.style.position = "fixed";
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.width = "100%";
 
     return () => {
       dialog.close();
       document.body.style.overflow = previousOverflow;
-      if (previousFocus instanceof HTMLElement) previousFocus.focus();
+      document.body.style.position = previousPosition;
+      document.body.style.top = previousTop;
+      document.body.style.width = previousWidth;
+      window.scrollTo({ top: scrollY, behavior: "instant" });
+      if (previousFocus instanceof HTMLElement) previousFocus.focus({ preventScroll: true });
     };
   }, []);
 

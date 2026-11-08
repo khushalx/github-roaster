@@ -12,7 +12,7 @@ export default function HowItWorksPage() {
     <>
       <StructuredData path="/how-it-works" title="How GitHub Roaster Works" description={description} />
       <main id="main-content" className="site-shell guide-page">
-        <header className="site-header"><Link className="brand" href="/">GitHub <strong>Roaster</strong></Link><nav className="site-nav" aria-label="Main navigation"><Link href="/">Solo roast</Link><Link href="/battle">Roast battle</Link></nav></header>
+        <header className="site-header"><Link className="brand" href="/">GitHub <strong>Roaster</strong></Link><nav className="site-nav" aria-label="Main navigation"><Link href="/">Solo roast</Link><Link href="/battle">Roast battle</Link><Link href="/how-it-works" aria-current="page">How it works</Link></nav></header>
         <article className="guide-content">
           <nav className="breadcrumbs" aria-label="Breadcrumb"><Link href="/">GitHub Roaster</Link><span aria-hidden="true">/</span><span aria-current="page">How it works</span></nav>
           <p className="section-kicker">Behind the verdict</p>

@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { motion, useReducedMotion } from "framer-motion";
+import { useQuietMotion } from "@/lib/use-quiet-motion";
+import { motion } from "framer-motion";
 
 export type BattleProfile = {
   username: string;
@@ -168,7 +169,7 @@ export default function BattleResult({
   onDownload: () => void;
   isGeneratingCard: boolean;
 }) {
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = useQuietMotion();
   const noDelay = Boolean(reduceMotion);
   const aLines = result.battle.fighterA.roastLines;
   const bLines = result.battle.fighterB.roastLines;

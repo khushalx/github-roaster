@@ -3,11 +3,12 @@
 import Image from "next/image";
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, MotionConfig, motion } from "framer-motion";
 import { FormEvent, ReactNode, useEffect, useRef, useState } from "react";
 import type { BattleResultData } from "./BattleResult";
 import RoastWarning from "./RoastWarning";
 import SiteFooter from "./SiteFooter";
+import { useQuietMotion } from "@/lib/use-quiet-motion";
 
 const BattleResult = dynamic(() => import("./BattleResult"));
 const BattleShareCard = dynamic(() => import("./BattleShareCard"), { ssr: false });
@@ -129,6 +130,7 @@ function LoadingAct({
   messages: string[];
   battleMode: boolean;
 }) {
+  const quietMotion = useQuietMotion();
   return (
     <motion.section
       className="loading-act"
@@ -152,9 +154,9 @@ function LoadingAct({
       <AnimatePresence mode="wait">
         <motion.p
           key={messageIndex}
-          initial={{ opacity: 0, y: 8, filter: "blur(4px)" }}
-          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-          exit={{ opacity: 0, y: -8, filter: "blur(4px)" }}
+          initial={{ opacity: 0, y: 8, filter: quietMotion ? "none" : "blur(4px)" }}
+          animate={{ opacity: 1, y: 0, filter: quietMotion ? "none" : "blur(0px)" }}
+          exit={{ opacity: 0, y: -8, filter: quietMotion ? "none" : "blur(4px)" }}
           transition={{ duration: 0.32 }}
         >
           {messages[messageIndex]}
@@ -254,7 +256,7 @@ function RoastReveal({
   onCopy: () => void;
   isGenerating: boolean;
 }) {
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = useQuietMotion();
   const lineTransition = (index: number) => ({
     duration: reduceMotion ? 0 : 0.45,
     delay: reduceMotion ? 0 : 0.3 + index * 0.14,
@@ -389,6 +391,7 @@ export default function RoastApp({
   initialMode?: "solo" | "battle";
   children?: ReactNode;
 }) {
+  const quietMotion = useQuietMotion();
   const [mode, setMode] = useState<"solo" | "battle">(initialMode);
   const [username, setUsername] = useState("");
   const [usernameA, setUsernameA] = useState("");
@@ -418,10 +421,10 @@ export default function RoastApp({
 
   useEffect(() => {
     if ((isLoading || result || battleResult || error) && outcomeRef.current) {
-      const timer = window.setTimeout(() => outcomeRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
+      const timer = window.setTimeout(() => outcomeRef.current?.scrollIntoView({ behavior: quietMotion ? "instant" : "smooth", block: "start" }), 100);
       return () => window.clearTimeout(timer);
     }
-  }, [isLoading, result, battleResult, error]);
+  }, [isLoading, result, battleResult, error, quietMotion]);
 
   function changeMode(nextMode: "solo" | "battle") {
     if (isLoading || nextMode === mode) return;
@@ -460,6 +463,8 @@ export default function RoastApp({
       return;
     }
 
+    // Dismiss the software keyboard and restore focus to this action on cancel.
+    event.currentTarget.querySelector<HTMLButtonElement>('button[type="submit"]')?.focus({ preventScroll: true });
     setPendingRoast({ mode, username: trimmed, usernameA: trimmedA, usernameB: trimmedB });
   }
 
@@ -701,6 +706,7 @@ export default function RoastApp({
 
   return (
     <main className="site-shell" id="main-content">
+    <MotionConfig reducedMotion={quietMotion ? "always" : "user"}>
       {pendingRoast && (
         <RoastWarning
           battleMode={pendingRoast.mode === "battle"}
@@ -718,8 +724,8 @@ export default function RoastApp({
           <span>GitHub <strong>Roaster</strong></span>
         </Link>
         <nav className="site-nav" aria-label="Main navigation">
-          <Link href="/">Solo roast</Link>
-          <Link href="/battle">Roast battle</Link>
+          <Link href="/" aria-current={initialMode === "solo" ? "page" : undefined}>Solo roast</Link>
+          <Link href="/battle" aria-current={initialMode === "battle" ? "page" : undefined}>Roast battle</Link>
           <Link href="/how-it-works">How it works</Link>
         </nav>
       </header>
@@ -752,11 +758,11 @@ export default function RoastApp({
               <strong>{mode === "battle" ? "Battle docket" : "Search warrant"}</strong>
               <span>{mode === "battle" ? "Roast combat division" : "Code crimes division"}</span>
             </div>
-            <div className="mode-switch" role="tablist" aria-label="Roast mode">
-              <button type="button" role="tab" aria-selected={mode === "solo"} className={mode === "solo" ? "active" : ""} onClick={() => changeMode("solo")} disabled={isLoading}>
+            <div className="mode-switch" role="group" aria-label="Roast mode">
+              <button type="button" aria-pressed={mode === "solo"} className={mode === "solo" ? "active" : ""} onClick={() => changeMode("solo")} disabled={isLoading}>
                 <span>01</span> Solo Roast
               </button>
-              <button type="button" role="tab" aria-selected={mode === "battle"} className={mode === "battle" ? "active" : ""} onClick={() => changeMode("battle")} disabled={isLoading}>
+              <button type="button" aria-pressed={mode === "battle"} className={mode === "battle" ? "active" : ""} onClick={() => changeMode("battle")} disabled={isLoading}>
                 <span>02</span> Battle Mode
               </button>
             </div>
@@ -768,7 +774,7 @@ export default function RoastApp({
                   <div className="username-field">
                     <GithubMark />
                     <span>github.com/</span>
-                    <input id="username" name="username" value={username} onChange={(event) => setUsername(event.target.value)} placeholder="username" autoComplete="off" autoCapitalize="none" spellCheck={false} disabled={isLoading} aria-describedby="search-disclaimer" />
+                    <input id="username" name="username" value={username} onChange={(event) => setUsername(event.target.value)} placeholder="username" autoComplete="off" autoCapitalize="none" spellCheck={false} autoCorrect="off" enterKeyHint="go" disabled={isLoading} aria-describedby="search-disclaimer" />
                   </div>
                   <button type="submit" className="roast-button" disabled={isLoading}>
                     <GavelIcon />{isLoading ? "Building the case…" : "Roast Them"}
@@ -782,7 +788,7 @@ export default function RoastApp({
                     <span><b>A</b> Suspect A</span>
                     <div className="username-field">
                       <GithubMark /><span>github.com/</span>
-                      <input id="usernameA" name="usernameA" value={usernameA} onChange={(event) => setUsernameA(event.target.value)} placeholder="first-fighter" autoComplete="off" autoCapitalize="none" spellCheck={false} disabled={isLoading} aria-describedby="search-disclaimer" />
+                      <input id="usernameA" name="usernameA" value={usernameA} onChange={(event) => setUsernameA(event.target.value)} placeholder="first-fighter" autoComplete="off" autoCapitalize="none" spellCheck={false} autoCorrect="off" enterKeyHint="next" onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); document.getElementById("usernameB")?.focus(); } }} disabled={isLoading} aria-describedby="search-disclaimer" />
                     </div>
                   </label>
                   <div className="form-vs" aria-hidden="true"><strong>VS</strong><small>Face-off</small></div>
@@ -790,7 +796,7 @@ export default function RoastApp({
                     <span><b>B</b> Suspect B</span>
                     <div className="username-field">
                       <GithubMark /><span>github.com/</span>
-                      <input id="usernameB" name="usernameB" value={usernameB} onChange={(event) => setUsernameB(event.target.value)} placeholder="second-fighter" autoComplete="off" autoCapitalize="none" spellCheck={false} disabled={isLoading} aria-describedby="search-disclaimer" />
+                      <input id="usernameB" name="usernameB" value={usernameB} onChange={(event) => setUsernameB(event.target.value)} placeholder="second-fighter" autoComplete="off" autoCapitalize="none" spellCheck={false} autoCorrect="off" enterKeyHint="go" disabled={isLoading} aria-describedby="search-disclaimer" />
                     </div>
                   </label>
                 </div>
@@ -814,7 +820,7 @@ export default function RoastApp({
         </motion.div>
       </section>
 
-      <div ref={outcomeRef} className="outcome-anchor">
+      <div ref={outcomeRef} className="outcome-anchor" aria-busy={isLoading}>
         <AnimatePresence mode="wait">
           {isLoading && (
             <LoadingAct
@@ -900,6 +906,7 @@ export default function RoastApp({
 
       {children}
       <SiteFooter />
+    </MotionConfig>
     </main>
   );
 }
