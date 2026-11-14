@@ -1,83 +1,121 @@
 # GitHub Roaster
 
-Generate GitHub profile roasts and head-to-head roast battles.
+**Your GitHub profile. On trial with AI.**
 
-## Local setup
+GitHub Roaster turns public repository data into developer comedy. Roast one
+profile, pit two profiles against each other, or download the verdict as a share
+card. No GitHub login required.
 
-1. Install dependencies with `npm ci`.
-2. Copy `.env.example` to `.env.local` and set `GROQ_API_KEY` to your Groq API key.
-3. Run `npm run dev` and open http://localhost:3000.
+[Roast a profile](https://githubroast.tech/) ·
+[Start a battle](https://githubroast.tech/battle) ·
+[See how it works](https://githubroast.tech/how-it-works)
 
-## Groq configuration
+[![GitHub Roaster — solo roasts, profile battles, and shareable verdicts](https://githubroast.tech/opengraph-image)](https://githubroast.tech/)
 
-Both roast endpoints default to `openai/gpt-oss-120b`, replacing the retired
-`llama-3.3-70b-versatile` model. The API endpoint and `GROQ_API_KEY` are unchanged.
-An existing valid Groq key can still be used.
+## What you can do
 
-Set the optional server-side `GROQ_MODEL` environment variable to override the
-model. Choose one that supports chat completions and JSON object mode. GPT-OSS
-120B and 20B use low reasoning effort, omit reasoning from responses, and receive
-2,048 extra completion tokens to leave room for reasoning before the final answer.
-Other models retain the requested completion budget and receive no GPT-OSS options.
+| Mode | What you get |
+| --- | --- |
+| **Solo roast** | An opening roast, a no-mercy round, a score, and an evidence board showing the public repository signals behind the jokes. |
+| **Roast battle** | Two profiles in the ring, with separate roast rounds, a side-by-side comparison, a winner, and a finishing move. |
+| **Share the verdict** | Copy the roast or battle verdict as text, or download a PNG: 1200 × 675 for a solo roast, 1080 × 1350 for a battle. |
 
-For a hosted deployment, retain `GROQ_API_KEY` in your hosting environment, remove
-any retired `GROQ_MODEL` override (or set it to `openai/gpt-oss-120b`), and redeploy
-this code. Local `.env.local` files are not committed or deployed automatically.
-Restart the development server after changing local environment variables.
+Enter one or two public usernames, then confirm the content warning to start.
+Roasts can contain strong language. Scores are for comedy; they don't measure
+code quality or developer skill.
 
-Model availability: https://console.groq.com/docs/models
+## How it works
 
-Deprecations: https://console.groq.com/docs/deprecations
+1. **Collect the evidence.** The server fetches a public profile and up to 30
+   of its most recently updated repositories from GitHub. It checks for READMEs
+   in up to 10 repositories selected by stars and recency.
+2. **Write the roast.** The server summarizes signals such as languages, stars,
+   stale projects, and missing READMEs, then sends the summary to Groq for
+   generation.
+3. **Deliver the verdict.** The server parses the result, and the client renders
+   the roast and creates share cards on demand.
 
-## Checks
+The app uses public metadata and checks README availability. It doesn't read
+private repositories or review source code line by line. GitHub requests
+revalidate after five minutes, so recent updates can take a little while to
+appear. The [data and scoring guide](https://githubroast.tech/how-it-works) has
+more detail.
 
-- `npm run lint`
-- `npm run build`
+## Run locally
 
-## SEO and publishing
+**Prerequisites:** Node.js 20.9+ and npm. You'll need a
+[Groq API key](https://console.groq.com/keys) to generate roasts.
 
-The homepage (`/`), battle tool (`/battle`), and data/method guide
-(`/how-it-works`) are statically rendered with unique titles, descriptions,
-production canonical URLs, social metadata, and JSON-LD. Tool functionality stays
-in `app/components/RoastApp.tsx`; explanatory content stays in server components.
-`lib/site.ts` owns the canonical domain and shared metadata. Update it if the
-production domain ever changes.
+```bash
+git clone https://github.com/khushalx/github-roaster.git
+cd github-roaster
+npm ci
+cp .env.example .env.local
+```
 
-- `/robots.txt` permits public pages, excludes `/api/`, and advertises `/sitemap.xml`.
-- `/sitemap.xml` lists only real canonical pages. Add useful pages here when added
-  to the site; do not add user inputs, temporary results, or invented last-modified dates.
-- `/opengraph-image`, `/icon`, and `/apple-icon` generate local PNGs without
-  external image or font requests. Metadata uses the production social image.
-- Vercel preview/development deployments set `noindex` and disallow crawling when
-  `VERCEL_ENV` is set to a value other than `production`.
-- `www.githubroast.tech` permanently redirects to the apex domain when the host
-  reaches this Next.js deployment. Configure both DNS/hosting domains in Vercel;
-  hosting handles HTTP-to-HTTPS. Check there are no conflicting redirect rules.
-- API responses carry `X-Robots-Tag: noindex, nofollow`.
-- There are no fabricated reviews, ratings, or FAQ rich-result claims.
+Set `GROQ_API_KEY` in `.env.local`, then start the app:
 
-### Verify before and after deployment
+```bash
+npm run dev
+```
 
-1. Run `npm run lint` and `npm run build`.
-2. Start the production build: `npm run start -- --hostname 127.0.0.1 --port 3100`.
-3. In a second terminal, run `npm run seo:check` to verify the actual HTTP output:
-   metadata, canonicals, crawlable links, JSON-LD, sitemap, robots, PNG dimensions,
-   API noindex headers, clean tracking-URL canonicals, and real 404 responses.
-4. Deploy and run `npm run seo:check -- https://githubroast.tech` to check the live
-   deployment. A local pass alone does not update the public website.
-5. Verify ownership of `githubroast.tech` in [Google Search Console](https://search.google.com/search-console).
-   Use a DNS TXT record for a Domain property, or set `GOOGLE_SITE_VERIFICATION`
-   to the HTML verification token for a URL-prefix property and redeploy. Do not
-   put a fake token in the source.
-6. Submit `https://githubroast.tech/sitemap.xml`; inspect the homepage, battle,
-   and guide URLs and request indexing. Inspect social previews and use Google's
-   [Rich Results Test](https://search.google.com/test/rich-results) for syntax checks.
-   Basic WebSite/WebPage/WebApplication schema does not guarantee a rich result.
-7. Monitor indexing, search queries, click-through rate, and field Core Web Vitals
-   in Search Console. Lab Lighthouse results are diagnostic snapshots, not real
-   user metrics or a promise of rankings.
+Open [localhost:3000](http://localhost:3000).
 
-The copy targets the tool's actual use cases: AI GitHub profile roasts and GitHub
-roast battles. Future content should answer real developer questions with useful,
-original examples. Avoid mass-generated username pages, keyword stuffing, fake
-backlinks, and duplicate landing pages.
+| Variable | Required | Purpose |
+| --- | --- | --- |
+| `GROQ_API_KEY` | For generation | Authenticates server requests to Groq. |
+| `GROQ_MODEL` | No | Defaults to `openai/gpt-oss-120b`. An override must support chat completions and JSON object mode. Check [Groq's model catalog](https://console.groq.com/docs/models) for availability. |
+| `GITHUB_TOKEN` | No | Authenticates public GitHub API requests to help with rate limits. Add it manually to `.env.local` if needed. |
+| `GOOGLE_SITE_VERIFICATION` | No | Search Console HTML tag token for verifying a hosted site. Use only the token value. |
+
+Keep keys and tokens server-side. Don't prefix them with `NEXT_PUBLIC_` or
+commit `.env.local`. Restart the dev server after editing local variables.
+
+If a valid username hits GitHub's rate limit, wait for the limit to reset or
+configure `GITHUB_TOKEN`. If generation fails, check the server log, Groq key,
+and whether your Groq project can use the configured model.
+
+## Project map
+
+Built with **Next.js App Router**, **React**, **TypeScript**, **Tailwind CSS** and
+custom CSS. **Framer Motion** handles reveals, and **html-to-image** renders the
+downloadable cards in the browser.
+
+| Path | Responsibility |
+| --- | --- |
+| [`app/`](app/) | Solo, battle, and guide pages, shared styles, and search metadata routes. |
+| [`app/components/`](app/components/) | Forms, content warning, evidence board, battle results, and share cards. |
+| [`app/api/`](app/api/) | `POST /api/roast` accepts `{ "username": "octocat" }`. `POST /api/battle` accepts `{ "usernameA": "octocat", "usernameB": "defunkt" }`. |
+| [`lib/github.ts`](lib/github.ts) | GitHub requests, repository sampling, and evidence scoring. |
+| [`lib/groq.ts`](lib/groq.ts) and [`lib/roast-prompts.ts`](lib/roast-prompts.ts) | Model configuration, completion parsing, and roast direction. |
+| [`lib/site.ts`](lib/site.ts) and [`scripts/check-seo.mjs`](scripts/check-seo.mjs) | Canonical metadata and HTTP checks for published pages. |
+
+## Checks and deployment
+
+```bash
+npm run lint
+npx tsc --noEmit
+npm run build
+npm run start -- --hostname 127.0.0.1 --port 3100
+```
+
+With the production build running, execute `npm run seo:check` in a second
+terminal. It verifies metadata, canonical URLs, JSON-LD, robots and sitemap
+responses, generated image dimensions, API indexing headers, and 404s. See the
+[mobile audit](MOBILE_AUDIT.md) for browser coverage and device testing limits.
+
+On Vercel, set the same server environment variables in the project's settings.
+If you deploy under a different canonical domain, update
+[`lib/site.ts`](lib/site.ts) and the host redirect in
+[`next.config.ts`](next.config.ts). Keep the sitemap limited to real public
+pages. Preview deployments restrict indexing when `VERCEL_ENV` is set and
+differs from `production`.
+
+After deployment, run `npm run seo:check -- https://githubroast.tech` against the
+public site. For the canonical deployment, verify ownership in
+[Google Search Console](https://search.google.com/search-console) and submit
+[`sitemap.xml`](https://githubroast.tech/sitemap.xml).
+
+---
+
+GitHub Roaster is an independent project and is not affiliated with GitHub.
