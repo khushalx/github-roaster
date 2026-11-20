@@ -8,6 +8,7 @@ import { FormEvent, ReactNode, useEffect, useRef, useState } from "react";
 import type { BattleResultData } from "./BattleResult";
 import RoastWarning from "./RoastWarning";
 import SiteFooter from "./SiteFooter";
+import CreatorCredit from "./CreatorCredit";
 import { useQuietMotion } from "@/lib/use-quiet-motion";
 
 const BattleResult = dynamic(() => import("./BattleResult"));
@@ -718,6 +719,7 @@ export default function RoastApp({
       <div className="curtain curtain-left" aria-hidden="true" />
       <div className="curtain curtain-right" aria-hidden="true" />
 
+      <CreatorCredit />
       <header className="site-header">
         <Link className="brand" href="/" aria-label="GitHub Roaster home">
           <span className="brand-mark"><GithubMark /><FlameIcon /></span>
