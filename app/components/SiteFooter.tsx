@@ -12,7 +12,10 @@ export default function SiteFooter() {
         </nav>
         <p>Public data. AI jokes. Scores for entertainment only.</p>
       </div>
-      <span>Independent project.<br />Not affiliated with GitHub.</span>
+      <span>
+        Created by <a href="https://github.com/khushalx" target="_blank" rel="noopener noreferrer">Khushal Dangar</a>
+        <br />Independent project.<br />Not affiliated with GitHub.
+      </span>
     </footer>
   );
 }
